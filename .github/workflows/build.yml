@@ -10,74 +10,52 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
-    - name: Install system dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk \
-          autoconf libtool pkg-config zlib1g-dev libncurses5-dev \
-          libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-    
-    - name: Install Python dependencies
-      run: |
-        pip install --upgrade pip
-        pip install cython
-        pip install buildozer
-    
-    - name: Accept Android SDK licenses (fix)
-      run: |
-        mkdir -p ~/.android
-        echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > ~/.android/adbkey.pub
-        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/adbkey
-        touch ~/.android/repositories.cfg
-        yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        sudo apt-get install -y git zip unzip openjdk-17-jdk
+        pip install buildozer cython
     
     - name: Create buildozer.spec
       run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-
-title = NeuroTrainer
-package.name = neurotrainer
-package.domain = org.example.neurotrainer
-
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,txt,json
-
-version = 0.1
-
-requirements = python3,kivy
-
-orientation = portrait
-fullscreen = 0
-
-android.permissions = WRITE_EXTERNAL_STORAGE
-android.api = 30
-android.minapi = 21
-android.ndk = 25b
-android.sdk = 30
-
-[buildozer]
-log_level = 2
-warn_on_root = 1
-EOF
+        echo "[app]" > buildozer.spec
+        echo "title = NeuroTrainer" >> buildozer.spec
+        echo "package.name = neurotrainer" >> buildozer.spec
+        echo "package.domain = org.example.neurotrainer" >> buildozer.spec
+        echo "source.dir = ." >> buildozer.spec
+        echo "source.include_exts = py,png,jpg,kv,atlas,txt,json" >> buildozer.spec
+        echo "version = 0.1" >> buildozer.spec
+        echo "requirements = python3,kivy" >> buildozer.spec
+        echo "orientation = portrait" >> buildozer.spec
+        echo "fullscreen = 0" >> buildozer.spec
+        echo "android.permissions = WRITE_EXTERNAL_STORAGE" >> buildozer.spec
+        echo "android.api = 30" >> buildozer.spec
+        echo "android.minapi = 21" >> buildozer.spec
+        echo "android.ndk = 25b" >> buildozer.spec
+        echo "android.sdk = 30" >> buildozer.spec
+        echo "" >> buildozer.spec
+        echo "[buildozer]" >> buildozer.spec
+        echo "log_level = 2" >> buildozer.spec
+        echo "warn_on_root = 1" >> buildozer.spec
+    
+    - name: Accept Android licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | y | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
     
     - name: Build APK
-      run: |
-        buildozer -v android debug
-      env:
-        ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
+      run: buildozer -v android debug
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: neurotrainer-apk
         path: bin/*.apk
-      if: always()
