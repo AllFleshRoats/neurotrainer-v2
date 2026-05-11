@@ -2,8 +2,6 @@ name: Build APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
 
 jobs:
   build:
@@ -12,67 +10,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - name: Build with Docker
+      uses: docker://kivy/buildozer:latest
       with:
-        python-version: '3.11'
-    
-    - name: Install Java
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y openjdk-17-jdk
-    
-    - name: Install Buildozer
-      run: |
-        pip install --upgrade pip
-        pip install cython==0.29.37
-        pip install buildozer
-    
-    - name: Configure Android SDK licenses
-      run: |
-        mkdir -p ~/.android
-        echo 'd56f5187479451eabf01fb78af6dfcb131a6481e' > ~/.android/adbkey.pub
-        echo '8933bad161af4178b1185d1a37fbf41ea5269c55' > ~/.android/adbkey
-        touch ~/.android/repositories.cfg
-        echo "User Accepted License" > ~/.android/license/android-sdk-license
-        echo "User Accepted License" > ~/.android/license/android-sdk-preview-license
-    
-    - name: Create buildozer.spec
-      run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-
-title = NeuroTrainer
-package.name = neurotrainer
-package.domain = org.example.neurotrainer
-
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,txt,json
-
-version = 0.1
-
-requirements = python3,kivy
-
-orientation = portrait
-fullscreen = 0
-
-android.permissions = WRITE_EXTERNAL_STORAGE
-android.api = 30
-android.minapi = 21
-android.ndk = 25c
-android.sdk = 30
-
-[buildozer]
-log_level = 2
-warn_on_root = 1
-EOF
-    
-    - name: Build APK
-      run: buildozer -v android debug
+        args: buildozer -v android debug
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: neurotrainer-apk
         path: bin/*.apk
-      if: success()
