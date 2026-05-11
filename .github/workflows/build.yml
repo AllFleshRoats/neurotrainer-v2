@@ -10,45 +10,37 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    - name: Clean previous builds
+    - name: Clean
       run: |
         rm -rf .buildozer
         rm -rf ~/.buildozer
-    - name: Install buildozer
+    - name: Install
       run: |
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk
-        pip install --upgrade pip
-        pip install --force-reinstall cython==0.29.37
-        pip install --no-cache-dir buildozer
-    - name: Create buildozer.spec
+        pip install cython buildozer
+    - name: Config
       run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-title = NeuroTrainer
-package.name = neurotrainer
-package.domain = org.example.neurotrainer
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,txt,json
-version = 0.1
-requirements = python3,kivy
-orientation = portrait
-fullscreen = 0
-android.permissions = WRITE_EXTERNAL_STORAGE
-android.api = 30
-android.minapi = 21
-android.ndk = 23c
-android.sdk = 30
-
-[buildozer]
-log_level = 2
-warn_on_root = 0
-EOF
-    - name: Build APK
-      run: |
-        buildozer -v android debug
-    - name: Upload APK
+        echo "[app]" > buildozer.spec
+        echo "title = NeuroTrainer" >> buildozer.spec
+        echo "package.name = neurotrainer" >> buildozer.spec
+        echo "package.domain = org.example.neurotrainer" >> buildozer.spec
+        echo "source.dir = ." >> buildozer.spec
+        echo "source.include_exts = py" >> buildozer.spec
+        echo "version = 0.1" >> buildozer.spec
+        echo "requirements = python3,kivy" >> buildozer.spec
+        echo "orientation = portrait" >> buildozer.spec
+        echo "fullscreen = 0" >> buildozer.spec
+        echo "android.permissions = WRITE_EXTERNAL_STORAGE" >> buildozer.spec
+        echo "android.api = 30" >> buildozer.spec
+        echo "android.minapi = 21" >> buildozer.spec
+        echo "android.ndk = 23c" >> buildozer.spec
+        echo "[buildozer]" >> buildozer.spec
+        echo "log_level = 2" >> buildozer.spec
+    - name: Build
+      run: buildozer -v android debug
+    - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: neurotrainer-apk
+        name: apk
         path: bin/*.apk
