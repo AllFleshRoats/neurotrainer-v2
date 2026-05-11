@@ -10,11 +10,8 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk
-        pip install buildozer
-    - name: Create config
+      run: sudo apt-get update && sudo apt-get install -y git zip unzip openjdk-17-jdk && pip install cython buildozer
+    - name: Config
       run: |
         echo "[app]" > buildozer.spec
         echo "title = NeuroTrainer" >> buildozer.spec
