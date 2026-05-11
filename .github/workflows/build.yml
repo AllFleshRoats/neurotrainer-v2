@@ -22,7 +22,6 @@ jobs:
         buildozer init
         sed -i 's/requirements = python3,kivy/requirements = python3,kivy/' buildozer.spec
         sed -i 's/^# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
-        echo 'warn_on_root = 0' >> buildozer.spec
         buildozer -v android debug
       env:
         P4A_ACCEPT_SDK_LICENSE: 'yes'
