@@ -3,29 +3,31 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: replit/kivy:latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Config
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install buildozer
       run: |
-        echo "[app]" > buildozer.spec
-        echo "title = NeuroTrainer" >> buildozer.spec
-        echo "package.name = neurotrainer" >> buildozer.spec
-        echo "package.domain = org.example.neurotrainer" >> buildozer.spec
-        echo "source.dir = ." >> buildozer.spec
-        echo "source.include_exts = py,png,jpg,kv,atlas,txt,json" >> buildozer.spec
-        echo "version = 0.1" >> buildozer.spec
-        echo "requirements = python3,kivy" >> buildozer.spec
-        echo "orientation = portrait" >> buildozer.spec
-        echo "android.permissions = WRITE_EXTERNAL_STORAGE" >> buildozer.spec
-        echo "android.api = 30" >> buildozer.spec
-        echo "android.ndk = 25c" >> buildozer.spec
-        echo "[buildozer]" >> buildozer.spec
-        echo "log_level = 2" >> buildozer.spec
-    - name: Build
-      run: buildozer -v android debug
-    - name: Upload
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        pip install --upgrade pip
+        pip install cython==0.29.37
+        pip install buildozer
+    - name: Build APK
+      run: |
+        buildozer init
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy/' buildozer.spec
+        sed -i 's/^# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+        echo 'warn_on_root = 0' >> buildozer.spec
+        buildozer -v android debug
+      env:
+        P4A_ACCEPT_SDK_LICENSE: 'yes'
+        P4A_ACCEPT_NDK_LICENSE: 'yes'
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: neurotrainer-apk
