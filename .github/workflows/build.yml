@@ -59,8 +59,7 @@ warn_on_root = 1
 EOF
     
     - name: Build with buildozer
-      run: |
-        buildozer -v android debug
+      run: buildozer -v android debug
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
